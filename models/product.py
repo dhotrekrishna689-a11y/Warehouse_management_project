@@ -22,7 +22,7 @@ class Product(db.Model):
     )
 
     sku = db.Column(
-                        db.Integer,
+                        db.String(100),
                         unique = True,
                         nullable = False
 
@@ -33,4 +33,4 @@ class Product(db.Model):
                                 nullable = True
     )
 
-    category = db.relationship("categories")
+    category = db.relationship("Category")
