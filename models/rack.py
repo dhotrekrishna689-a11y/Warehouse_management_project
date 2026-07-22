@@ -14,3 +14,8 @@ class Rack(db.Model):
         unique=True,
         nullable=False
     )
+
+    inventories = db.relationship(
+    "Inventory",
+    back_populates="rack"
+    )
