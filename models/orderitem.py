@@ -25,3 +25,8 @@ class OrderItem(db.Model):
         db.Integer,
         nullable=False
     )
+
+    order = db.relationship(
+    "Order",
+    back_populates="order_items"
+    )
