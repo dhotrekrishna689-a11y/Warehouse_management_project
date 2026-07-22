@@ -31,3 +31,8 @@ class ShipmentItem(db.Model):
         db.Integer,
         nullable=False
     )
+
+    shipment = db.relationship(
+    "Shipment",
+    back_populates="shipment_items"
+    )
