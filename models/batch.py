@@ -37,3 +37,9 @@ class Batch(db.Model):
     "Product",
     back_populates="batches"
     )
+
+    inventory = db.relationship(
+    "Inventory",
+    back_populates="batch",
+    uselist=False
+    )
