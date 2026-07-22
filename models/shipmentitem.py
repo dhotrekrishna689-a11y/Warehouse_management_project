@@ -36,3 +36,8 @@ class ShipmentItem(db.Model):
     "Shipment",
     back_populates="shipment_items"
     )
+
+    product = db.relationship(
+    "Product",
+    back_populates="shipment_items"
+    )
