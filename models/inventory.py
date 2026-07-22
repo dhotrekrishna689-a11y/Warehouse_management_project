@@ -37,3 +37,8 @@ class Inventory(db.Model):
     "Product",
     back_populates="inventories"
     )
+
+    rack = db.relationship(
+    "Rack",
+    back_populates="inventories"
+    )
