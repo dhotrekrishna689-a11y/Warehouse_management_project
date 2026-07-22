@@ -14,3 +14,8 @@ class Category(db.Model):
                         unique = True
 
     )
+    
+    products = db.relationship(
+    "Product",
+    back_populates="category"
+    )
