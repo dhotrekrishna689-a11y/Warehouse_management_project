@@ -35,3 +35,8 @@ class StockMovement(db.Model):
         db.Date,
         nullable=False
     )
+
+    inventory = db.relationship(
+    "Inventory",
+    back_populates="stock_movements"
+    )
