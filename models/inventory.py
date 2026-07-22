@@ -32,3 +32,8 @@ class Inventory(db.Model):
         db.Integer,
         nullable=False
     )
+
+    product = db.relationship(
+    "Product",
+    back_populates="inventories"
+    )
