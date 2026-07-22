@@ -30,3 +30,8 @@ class OrderItem(db.Model):
     "Order",
     back_populates="order_items"
     )
+
+    product = db.relationship(
+    "Product",
+    back_populates="order_items"
+    )
