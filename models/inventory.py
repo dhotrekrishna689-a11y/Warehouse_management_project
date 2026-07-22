@@ -42,3 +42,8 @@ class Inventory(db.Model):
     "Rack",
     back_populates="inventories"
     )
+    
+    batch = db.relationship(
+    "Batch",
+    back_populates="inventory"
+    )
