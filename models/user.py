@@ -29,3 +29,8 @@ class User(db.Model):
         db.String(50),
         nullable=False
     )
+
+    shipments = db.relationship(
+    "Shipment",
+    back_populates="user"
+    )
