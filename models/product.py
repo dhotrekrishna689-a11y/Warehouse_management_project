@@ -33,4 +33,9 @@ class Product(db.Model):
                                 nullable = True
     )
 
-    category = db.relationship("Category")
+    #category = db.relationship("Category")
+
+    category = db.relationship(
+    "Category",
+    back_populates="products"
+    )
