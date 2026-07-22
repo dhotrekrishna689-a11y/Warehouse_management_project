@@ -25,3 +25,8 @@ class Shipment(db.Model):
         db.ForeignKey("users.user_id"),
         nullable=False
     )
+
+    user = db.relationship(
+    "User",
+    back_populates="shipments"
+    )
