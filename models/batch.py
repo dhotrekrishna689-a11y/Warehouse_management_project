@@ -31,4 +31,9 @@ class Batch(db.Model):
         nullable=True
     )
 
-    product = db.relationship("Product")
+    #product = db.relationship("Product")
+
+    product = db.relationship(
+    "Product",
+    back_populates="batches"
+    )
