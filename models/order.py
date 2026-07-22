@@ -19,3 +19,8 @@ class Order(db.Model):
         db.Date,
         nullable=False
     )
+
+    order_items = db.relationship(
+    "OrderItem",
+    back_populates="order"
+    )
