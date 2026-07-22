@@ -47,3 +47,8 @@ class Inventory(db.Model):
     "Batch",
     back_populates="inventory"
     )
+
+    stock_movements = db.relationship(
+    "StockMovement",
+    back_populates="inventory"
+    )
