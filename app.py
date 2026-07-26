@@ -3,6 +3,7 @@ from flask import Flask
 from database.db_instance import db
 import os
 
+
 load_dotenv()
 app = Flask(__name__)
 
@@ -20,9 +21,11 @@ from models.shipmentitem import ShipmentItem
 from models.order import Order
 from models.orderitem import OrderItem
 from models.stockmovement import StockMovement
-
+from routes.categories_routes import category_bp
 with app.app_context():
     db.create_all()
+
+app.register_blueprint(category_bp)
 
 
 @app.route("/")
