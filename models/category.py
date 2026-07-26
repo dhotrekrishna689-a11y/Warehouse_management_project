@@ -19,3 +19,8 @@ class Category(db.Model):
     "Product",
     back_populates="category"
     )
+    def to_dict(self):
+        return {
+            "category_id": self.category_id,
+            "name": self.name
+        }
