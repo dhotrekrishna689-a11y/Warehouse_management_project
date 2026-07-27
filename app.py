@@ -22,11 +22,12 @@ from models.order import Order
 from models.orderitem import OrderItem
 from models.stockmovement import StockMovement
 from routes.categories_routes import category_bp
+from routes.products_routes import product_bp
 with app.app_context():
     db.create_all()
 
 app.register_blueprint(category_bp)
-
+app.register_blueprint(product_bp)
 
 @app.route("/")
 def home():
