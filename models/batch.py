@@ -48,3 +48,12 @@ class Batch(db.Model):
     "ShipmentItem",
     back_populates="batch"
     )
+
+    def to_dict(self):
+        return {
+        "batch_id": self.batch_id,
+        "product_id": self.product_id,
+        "batch_number": self.batch_number,
+        "manufacturing_date": self.manufacturing_date,
+        "expiry_date": self.expiry_date
+        }
