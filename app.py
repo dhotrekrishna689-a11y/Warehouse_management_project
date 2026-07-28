@@ -24,12 +24,14 @@ from models.stockmovement import StockMovement
 from routes.categories_routes import category_bp
 from routes.products_routes import product_bp
 from routes.batches_routes import batches_bp
+from routes.inventories_routes import inventories_bp
 with app.app_context():
     db.create_all()
 
 app.register_blueprint(category_bp)
 app.register_blueprint(product_bp)
 app.register_blueprint(batches_bp)
+app.register_blueprint(inventories_bp)
 
 @app.route("/")
 def home():
