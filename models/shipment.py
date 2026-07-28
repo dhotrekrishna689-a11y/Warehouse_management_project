@@ -35,3 +35,11 @@ class Shipment(db.Model):
     "ShipmentItem",
     back_populates="shipment"
     )
+
+    def to_dict(self):
+        return {
+        "shipment_id": self.shipment_id,
+        "shipment_number": self.shipment_number,
+        "received_date": self.received_date,
+        "user_id": self.user_id
+        }
