@@ -19,3 +19,9 @@ class Rack(db.Model):
     "Inventory",
     back_populates="rack"
     )
+
+    def to_dict(self):
+        return {
+        "rack_id": self.rack_id,
+        "rack_code": self.rack_code
+        }
