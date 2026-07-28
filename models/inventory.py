@@ -52,3 +52,14 @@ class Inventory(db.Model):
     "StockMovement",
     back_populates="inventory"
     )
+
+    def to_dict(self):
+        return {
+        "inventory_id": self.inventory_id,
+        "product_id": self.product_id,
+        "batch_id": self.batch_id,
+        "rack_id": self.rack_id,
+        "quantity": self.quantity
+        }
+
+    
