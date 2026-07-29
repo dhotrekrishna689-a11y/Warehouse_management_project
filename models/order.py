@@ -24,3 +24,10 @@ class Order(db.Model):
     "OrderItem",
     back_populates="order"
     )
+
+    def to_dict(self):
+        return {
+        "order_id": self.order_id,
+        "order_number": self.order_number,
+        "order_date": self.order_date
+        }
