@@ -35,3 +35,12 @@ class OrderItem(db.Model):
     "Product",
     back_populates="order_items"
     )
+
+    
+    def to_dict(self):
+        return {
+        "order_item_id": self.order_item_id,
+        "order_id": self.order_id,
+        "product_id": self.product_id,
+        "quantity": self.quantity
+        }    
