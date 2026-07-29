@@ -27,6 +27,7 @@ from routes.batches_routes import batches_bp
 from routes.inventories_routes import inventories_bp
 from routes.racks_routes import racks_bp
 from routes.shipments_routes import shipments_bp
+from routes.shipmentitems_routes import shipmentitems_bp
 with app.app_context():
     db.create_all()
 
@@ -36,6 +37,7 @@ app.register_blueprint(batches_bp)
 app.register_blueprint(inventories_bp)
 app.register_blueprint(racks_bp)
 app.register_blueprint(shipments_bp)
+app.register_blueprint(shipmentitems_bp)
 
 @app.route("/")
 def home():
