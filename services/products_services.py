@@ -4,6 +4,7 @@ from database.db_instance import db
 from models.category import Category
 from models.product import Product
 from models.batch import Batch
+from sqlalchemy import or_
 
 def create_product(category_id, name, sku, description):
 
@@ -51,9 +52,15 @@ def get_products(search, category_id, page, limit):
 
 
     query = Product.query
-
+    search = f"%{search}%"
     if search:
-        query = query.filter_by(name=search)
+        #query = query.filter_by(name=search)
+        query = query.filter(
+            or_(
+        Product.name.ilike(search),
+        Product.sku.ilike(search)
+            )
+        )
 
     if category_id:
         query = query.filter_by(category_id = category_id)
