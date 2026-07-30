@@ -1,5 +1,5 @@
 from database.db_instance import db
-
+import math
 from database.db_instance import db
 from models.category import Category
 from models.product import Product
@@ -33,11 +33,56 @@ def create_product(category_id, name, sku, description):
     return product
 
 
-def get_products():
-
-    products = Product.query.all()
+def get_products(search, category_id, page, limit):
+    '''
+    product = Product.query.all()
 
     return products
+    '''
+    if page is None:
+        page = 1
+    else:
+        page = int(page)
+    
+    if limit is None:
+        limit = 20
+    else:
+        limit = int(limit)
+
+
+    query = Product.query
+
+    if search:
+        query = query.filter_by(name=search)
+
+    if category_id:
+        query = query.filter_by(category_id = category_id)
+
+    
+    total_records = query.count()
+
+    # 5. Sorting
+    query = query.order_by(Product.name.asc())
+
+    # 6. Pagination
+    offset = (page - 1) * limit
+
+    query = query.offset(offset).limit(limit)
+
+    # 7. Execute Query
+    products = query.all()
+
+    # 8. Total Pages
+    total_pages = math.ceil(total_records / limit)
+
+    return products, {
+        "page": page,
+        "limit": limit,
+        "total_records": total_records,
+        "total_pages": total_pages
+    }
+        
+
 
 
 def get_specific_product(product_id):

@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 import services.products_services as products_services
-from models.batch import Batch
+
 
 
 def create_product():
@@ -42,7 +42,7 @@ def create_product():
 
 
 def get_products():
-
+    '''
     # Service Call
     products = products_services.get_products()
 
@@ -57,7 +57,31 @@ def get_products():
         "message": "Products fetched successfully",
         "data": converted_products
     }), 200
+    '''
+    search = request.args.get("search")
+    category_id = request.args.get("category_id", type=int)
+    page = request.args.get("page", type=int)
+    limit = request.args.get("limit", type=int)
+    
 
+
+
+    product, pagination = products_services.get_products(search, category_id, page, limit)
+
+   
+
+    # 3. Convert Products to Dictionary
+    converted_products = []
+
+    for product in product:
+        converted_products.append(product.to_dict())
+
+    # 4. Return Response
+    return jsonify({
+        "message": "Products fetched successfully",
+        "data": converted_products,
+        "pagination": pagination
+    }), 200
 
 def get_specific_product(product_id):
 
