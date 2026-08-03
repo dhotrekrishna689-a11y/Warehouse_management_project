@@ -30,8 +30,11 @@ from routes.shipments_routes import shipments_bp
 from routes.shipmentitems_routes import shipmentitems_bp
 from routes.orders_routes import orders_bp
 from routes.orderitems_routes import orderitems_bp
+from flask_migrate import Migrate
 with app.app_context():
     db.create_all()
+
+migrate = Migrate(app, db)
 
 app.register_blueprint(category_bp)
 app.register_blueprint(product_bp)
