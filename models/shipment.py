@@ -12,7 +12,7 @@ class Shipment(db.Model):
     shipment_number = db.Column(
         db.String(100),
         unique=True,
-        nullable=False
+        nullable=True
     )
 
     received_date = db.Column(
