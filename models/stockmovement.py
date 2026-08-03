@@ -1,5 +1,6 @@
 from database.db_instance import db
-
+from datetime import datetime
+from sqlalchemy import Enum
 
 class StockMovement(db.Model):
     __tablename__ = "stock_movements"
@@ -27,13 +28,25 @@ class StockMovement(db.Model):
     )
 
     movement_type = db.Column(
-        db.String(100),
+        Enum(
+            "RECEIVED",
+            "DISPATCHED",
+            "ADJUSTMENT",
+            name="movement_type_enum"
+        ),
+        nullable=False
+    )
+
+
+    reason = db.Column(
+        db.String(255),
         nullable=False
     )
 
     movement_date = db.Column(
-        db.Date,
-        nullable=False
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow
     )
 
     inventory = db.relationship(
