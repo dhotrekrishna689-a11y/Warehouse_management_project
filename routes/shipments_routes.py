@@ -10,7 +10,7 @@ shipments_bp = Blueprint(
 
 @shipments_bp.route("", methods=["POST"])
 def create_shipment():
-    return shipments_controllers.create_shipment()
+    return shipments_controllers.receive_shipment()
 
 @shipments_bp.route("", methods=["GET"])
 def get_shipments():
