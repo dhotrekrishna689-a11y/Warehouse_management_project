@@ -119,3 +119,47 @@ def delete_inventory(inventory_id):
     db.session.commit()
 
     return inventory
+
+def adjust_stock(inventory_id, quantity, reason):
+
+    # 1. Fetch Inventory
+    inventory = Inventory.query.get(inventory_id)
+
+    if inventory is None:
+        return "Inventory not found."
+
+    # 2. Validation
+    if quantity < 0:
+        return "Quantity cannot be negative."
+
+    if not reason:
+        return "Reason is required."
+
+    # 3. Current Quantity
+    current_quantity = inventory.quantity
+
+    # 4. No Adjustment Required
+    if current_quantity == quantity:
+        return "No stock adjustment required."
+
+    # 5. Calculate Difference
+    difference = quantity - current_quantity
+
+    # 6. Update Inventory
+    inventory.quantity = quantity
+
+    # 7. Create Stock Movement
+    
+    stock_movement = StockMovement(
+            inventory_id=inventory.inventory_id,
+            user_id=1,                      # Temporary
+            quantity_changed=difference,
+            movement_type="ADJUSTMENT",
+            reason=reason
+    )
+    db.session.add(stock_movement)
+
+    # 8. Commit
+    db.session.commit()
+
+    return inventory

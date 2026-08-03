@@ -144,3 +144,46 @@ def delete_inventory(inventory_id):
         "message": "Inventory deleted successfully",
         "data": inventory.to_dict()
     }), 200
+
+
+def adjust_stock(inventory_id):
+
+    # Request Body
+    stock_data = request.get_json()
+
+    quantity = stock_data.get("quantity")
+    reason = stock_data.get("reason")
+
+    # Service Call
+    result = inventories_services.adjust_stock(
+        inventory_id,
+        quantity,
+        reason
+    )
+
+    # Error Handling
+    if result == "Inventory not found.":
+        return jsonify({
+            "message": result
+        }), 404
+
+    if result == "Quantity cannot be negative.":
+        return jsonify({
+            "message": result
+        }), 400
+
+    if result == "Reason is required.":
+        return jsonify({
+            "message": result
+        }), 400
+
+    if result == "No stock adjustment required.":
+        return jsonify({
+            "message": result
+        }), 200
+
+    # Success
+    return jsonify({
+        "message": "Stock adjusted successfully"
+    }), 200
+

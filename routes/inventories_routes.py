@@ -28,3 +28,7 @@ def update_inventory(inventory_id):
 @inventories_bp.route("/<int:inventory_id>", methods=["DELETE"])
 def delete_inventory(inventory_id):
     return inventories_controllers.delete_inventory(inventory_id)
+
+@inventories_bp.route("/<int:inventory_id>", methods=["PATCH"])
+def adjust_stock(inventory_id):
+    return inventories_controllers.adjust_stock(inventory_id)
