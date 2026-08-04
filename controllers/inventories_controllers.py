@@ -188,29 +188,8 @@ def adjust_stock(inventory_id):
         "message": "Stock adjusted successfully"
     }), 200
 
-from flask import request, jsonify
-from services import shipments_services
 
 
-def receive_shipment():
 
-    shipment_data = request.get_json()
-
-    if shipment_data is None:
-        return jsonify({
-            "message": "Invalid request body."
-        }), 400
-
-    shipment = shipments_services.receive_shipment(shipment_data)
-
-    if isinstance(shipment, str):
-        return jsonify({
-            "message": shipment
-        }), 400
-
-    return jsonify({
-        "message": "Shipment received successfully.",
-        "shipment": shipment.to_dict()
-    }), 201
 
 

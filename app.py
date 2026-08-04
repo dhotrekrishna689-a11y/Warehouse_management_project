@@ -31,6 +31,7 @@ from routes.shipmentitems_routes import shipmentitems_bp
 from routes.orders_routes import orders_bp
 from routes.orderitems_routes import orderitems_bp
 from flask_migrate import Migrate
+from models.productmovement import ProductMovement
 with app.app_context():
     db.create_all()
 
