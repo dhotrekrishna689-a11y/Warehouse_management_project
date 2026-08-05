@@ -39,3 +39,8 @@ class User(db.Model):
     "StockMovement",
     back_populates="user"
     )
+
+    productmovements = db.relationship(
+        "ProductMovement",
+        back_populates="user"
+    )

@@ -60,6 +60,11 @@ class Product(db.Model):
     back_populates="product"
     )
 
+    productmovements = db.relationship(
+        "ProductMovement",
+        back_populates = "product"
+    )
+
 
     def to_dict(self):
         return {
@@ -68,4 +73,5 @@ class Product(db.Model):
             "name": self.name,
             "sku": self.sku,
             "description": self.description
+
         }

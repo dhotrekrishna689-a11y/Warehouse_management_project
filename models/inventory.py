@@ -18,7 +18,7 @@ class Inventory(db.Model):
     batch_id = db.Column(
         db.Integer,
         db.ForeignKey("batches.batch_id"),
-        unique=True,
+        
         nullable=False
     )
 
@@ -61,5 +61,14 @@ class Inventory(db.Model):
         "rack_id": self.rack_id,
         "quantity": self.quantity
         }
+
+    __table_args__ = (
+    db.UniqueConstraint(
+        "product_id",
+        "batch_id",
+        "rack_id",
+        name="uq_inventory_product_batch_rack"
+        ),
+    )
 
     

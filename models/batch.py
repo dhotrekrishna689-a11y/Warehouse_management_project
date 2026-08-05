@@ -49,6 +49,11 @@ class Batch(db.Model):
     back_populates="batch"
     )
 
+    productmovements = db.relationship(
+        "ProductMovement",
+        back_populates="batch"
+    )
+
     def to_dict(self):
         return {
         "batch_id": self.batch_id,

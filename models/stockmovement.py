@@ -32,6 +32,8 @@ class StockMovement(db.Model):
             "RECEIVED",
             "DISPATCHED",
             "ADJUSTMENT",
+            "MOVED_OUT",
+            "MOVED_IN",
             name="movement_type_enum"
         ),
         nullable=False

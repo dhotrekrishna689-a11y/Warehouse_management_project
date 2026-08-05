@@ -20,6 +20,19 @@ class Rack(db.Model):
     back_populates="rack"
     )
 
+    source_product_movements = db.relationship(
+            "ProductMovement",
+            foreign_keys="ProductMovement.source_rack_id",
+            back_populates="source_rack"
+    )
+
+
+    destination_product_movements = db.relationship(
+        "ProductMovement",
+        foreign_keys="ProductMovement.destination_rack_id",
+        back_populates="destination_rack"
+    )
+
     def to_dict(self):
         return {
         "rack_id": self.rack_id,

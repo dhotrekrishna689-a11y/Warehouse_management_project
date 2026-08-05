@@ -32,6 +32,7 @@ from routes.orders_routes import orders_bp
 from routes.orderitems_routes import orderitems_bp
 from flask_migrate import Migrate
 from models.productmovement import ProductMovement
+from routes.product_movements_routes import product_movements_bp
 with app.app_context():
     db.create_all()
 
@@ -46,6 +47,7 @@ app.register_blueprint(shipments_bp)
 app.register_blueprint(shipmentitems_bp)
 app.register_blueprint(orders_bp)
 app.register_blueprint(orderitems_bp)
+app.register_blueprint(product_movements_bp)
 
 @app.route("/")
 def home():
