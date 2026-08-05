@@ -84,3 +84,36 @@ def delete_rack(rack_id):
     db.session.commit()
 
     return rack
+
+
+
+
+def get_rack_utilization():
+
+    racks = Rack.query.all()
+
+    rack_utilization = []
+
+    for rack in racks:
+
+        current_stock = 0
+
+        for inventory in rack.inventories:
+            current_stock += inventory.quantity
+
+        if rack.capacity == 0:
+            utilization_percentage = 0
+        else:
+            utilization_percentage = (
+                current_stock / rack.capacity
+            ) * 100
+
+        rack_utilization.append({
+            "rack_id": rack.rack_id,
+            "rack_code": rack.rack_code,
+            "capacity": rack.capacity,
+            "current_stock": current_stock,
+            "utilization_percentage": round(utilization_percentage, 2)
+        })
+
+    return rack_utilization

@@ -29,3 +29,8 @@ def update_rack(rack_id):
 @racks_bp.route("/<int:rack_id>", methods=["DELETE"])
 def delete_rack(rack_id):
     return racks_controllers.delete_rack(rack_id)
+
+
+@racks_bp.route("/utilization", methods=["GET"])
+def get_rack_utilization():
+    return racks_controllers.get_rack_utilization()

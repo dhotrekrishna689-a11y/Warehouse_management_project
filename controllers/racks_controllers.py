@@ -104,3 +104,14 @@ def delete_rack(rack_id):
         "message": "Rack deleted successfully",
         "data": rack.to_dict()
     }), 200
+
+
+def get_rack_utilization():
+
+
+    
+    rack_utilization = racks_services.get_rack_utilization()
+
+    return jsonify({
+        "rack_utilization": rack_utilization
+    }), 200
