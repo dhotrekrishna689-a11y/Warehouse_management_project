@@ -15,6 +15,12 @@ class Rack(db.Model):
         nullable=False
     )
 
+    capacity = db.Column(
+        db.Integer,
+        nullable=False
+
+    )
+
     inventories = db.relationship(
     "Inventory",
     back_populates="rack"
@@ -34,7 +40,9 @@ class Rack(db.Model):
     )
 
     def to_dict(self):
-        return {
-        "rack_id": self.rack_id,
-        "rack_code": self.rack_code
+        return 
+        {
+            "rack_id": self.rack_id,
+            "rack_code": self.rack_code,
+            "capacity" : self.capacity
         }
