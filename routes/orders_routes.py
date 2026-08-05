@@ -9,7 +9,7 @@ orders_bp = Blueprint(
 )
 
 
-@orders_bp.route("", methods=["POST"])
+@orders_bp.route("/", methods=["POST"])
 def create_order():
     return orders_controllers.create_order()
 
@@ -28,3 +28,5 @@ def update_order(order_id):
 @orders_bp.route("/<int:order_id>", methods=["DELETE"])
 def delete_order(order_id):
     return orders_controllers.delete_order(order_id)
+
+

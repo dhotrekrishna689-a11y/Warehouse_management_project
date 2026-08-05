@@ -2,6 +2,7 @@ from flask import request, jsonify
 import services.orders_services as orders_services
 
 
+'''
 def create_order():
 
     data = request.get_json()
@@ -33,8 +34,7 @@ def create_order():
         "message": "Order created successfully",
         "data": order.to_dict()
     }), 201
-
-
+'''
 
 def get_orders():
 
@@ -111,3 +111,22 @@ def delete_order(order_id):
         "message": "Order deleted successfully",
         "data": order.to_dict()
     }), 200
+
+
+
+
+def create_order():
+
+    order_data = request.get_json()
+
+    order = orders_services.create_order(order_data)
+
+    if isinstance(order, str):
+        return jsonify({
+            "message": order
+        }), 400
+
+    return jsonify({
+        "message": "Order created successfully.",
+        "order": order.to_dict()
+    }), 201

@@ -1,7 +1,9 @@
 from database.db_instance import db
 from models.order import Order
+from models.orderitem import OrderItem
 
 
+'''
 def create_order(
     order_number,
     order_date
@@ -29,7 +31,7 @@ def create_order(
     db.session.commit()
 
     return order
-
+'''
 
 def get_orders():
 
@@ -86,6 +88,87 @@ def delete_order(order_id):
         return "order_has_items"
 
     db.session.delete(order)
+    db.session.commit()
+
+    return order
+
+
+
+
+
+def create_order(order_data):
+
+    # ------------------------
+    # Order Level Validation
+    # ------------------------
+
+    customer_name = order_data.get("customer_name")
+    order_date = order_data.get("order_date")
+    items = order_data.get("items")
+
+    if not customer_name:
+        return "Customer name is required."
+
+    if not order_date:
+        return "Order date is required."
+
+    if not items:
+        return "Order must contain at least one item."
+
+    # ------------------------
+    # Item Level Validation
+    # ------------------------
+
+    for index, item in enumerate(items, start=1):
+
+        product_id = item.get("product_id")
+        quantity = item.get("quantity")
+
+        if not product_id:
+            return f"Product is required for item {index}."
+
+        if quantity is None:
+            return f"Quantity is required for item {index}."
+
+        if quantity <= 0:
+            return f"Quantity must be greater than zero for item {index}."
+
+    # ------------------------
+    # Create Order
+    # ------------------------
+
+    order = Order(
+        customer_name=customer_name,
+        order_date=order_date
+    )
+
+    db.session.add(order)
+
+    db.session.flush()
+
+    order.order_number = f"ORD-{order.order_id:06d}"
+
+    # ------------------------
+    # Create Order Items
+    # ------------------------
+
+    for item in items:
+
+        product_id = item.get("product_id")
+        quantity = item.get("quantity")
+
+        order_item = OrderItem(
+            order_id=order.order_id,
+            product_id=product_id,
+            quantity=quantity
+        )
+
+        db.session.add(order_item)
+
+    # ------------------------
+    # Commit
+    # ------------------------
+
     db.session.commit()
 
     return order
