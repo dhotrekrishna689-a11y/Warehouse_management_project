@@ -4,6 +4,13 @@ from database.db_instance import db
 class Order(db.Model):
     __tablename__ = "orders"
 
+
+
+    customer_name = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
     order_id = db.Column(
         db.Integer,
         primary_key=True
@@ -12,7 +19,7 @@ class Order(db.Model):
     order_number = db.Column(
         db.String(100),
         unique=True,
-        nullable=False
+        nullable=True
     )
 
     order_date = db.Column(
