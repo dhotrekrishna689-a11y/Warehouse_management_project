@@ -29,4 +29,7 @@ def update_order(order_id):
 def delete_order(order_id):
     return orders_controllers.delete_order(order_id)
 
+@orders_bp.route("/<int:order_id>/pick-list", methods=["GET"])
+def get_pick_list(order_id):
+    return orders_controllers.get_pick_list(order_id)
 

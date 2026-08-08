@@ -1,6 +1,7 @@
 from database.db_instance import db
 from models.order import Order
 from models.orderitem import OrderItem
+from models.inventory import Inventory
 
 
 '''
@@ -172,3 +173,91 @@ def create_order(order_data):
     db.session.commit()
 
     return order
+
+
+def get_pick_list(order_id):
+    print("===== PICK LIST SERVICE CALLED =====")
+    print("ORDER ID:", order_id)
+
+    order = Order.query.get(order_id)
+
+    if not order:
+        return "Order not found."
+
+    pick_list = []
+
+    for order_item in order.order_items:
+
+        need_quantity = order_item.quantity
+
+        inventories = Inventory.query.filter_by(
+            product_id=order_item.product_id
+        ).all()
+
+
+        total_available = sum(
+        inventory.quantity
+        for inventory in inventories
+        )
+
+        print("Product:", order_item.product_id)
+        print("Need:", need_quantity)
+        print("Available:", total_available)
+
+        if not inventories:
+            return f"No inventory found for Product ID {order_item.product_id}"
+
+        # Aage validation aur allocation yahin hoga
+        #for order_item in order.order_items:
+        #print(order_item.product_id)
+        #print(order_item.quantity)
+
+        if total_available < need_quantity:
+            return {
+            "message": "Insufficient stock.",
+            "product_id": order_item.product_id,
+            "required": need_quantity,
+            "available": total_available
+        }, 400
+
+
+
+        inventories.sort(
+            key=lambda inventory: inventory.batch.expiry_date
+        )
+        '''
+        for inventory in inventories:
+            print(
+                "Inventory ID:", inventory.inventory_id,
+                "Batch ID:", inventory.batch_id,
+                "Rack ID:", inventory.rack_id,
+                "Quantity:", inventory.quantity
+            )'''
+        remaining_need = need_quantity
+        for inventory in inventories:
+
+            if remaining_need == 0:
+                break
+
+            pick_quantity = min(
+            remaining_need,
+            inventory.quantity
+            )
+
+            if pick_quantity > 0:
+
+                pick_list.append({
+                "product_id": inventory.product_id,
+                "batch_id": inventory.batch_id,
+                "rack_id": inventory.rack_id,
+                "pick_quantity": pick_quantity
+            })
+
+            remaining_need -= pick_quantity
+
+    return {
+        "order_id": order.order_id,
+        "order_number": order.order_number,
+        "customer_name": order.customer_name,
+        "items": pick_list
+    }

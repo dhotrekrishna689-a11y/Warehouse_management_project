@@ -130,3 +130,13 @@ def create_order():
         "message": "Order created successfully.",
         "order": order.to_dict()
     }), 201
+
+
+def get_pick_list(order_id):
+
+    result = orders_services.get_pick_list(order_id)
+
+    if isinstance(result, str):
+        return jsonify({"message": result}), 404
+
+    return jsonify(result), 200
