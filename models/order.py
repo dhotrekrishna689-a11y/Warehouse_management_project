@@ -35,6 +35,7 @@ class Order(db.Model):
     def to_dict(self):
         return {
         "order_id": self.order_id,
+        "customer_name": self.customer_name,
         "order_number": self.order_number,
         "order_date": self.order_date
         }
