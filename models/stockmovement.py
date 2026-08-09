@@ -34,6 +34,7 @@ class StockMovement(db.Model):
             "ADJUSTMENT",
             "MOVED_OUT",
             "MOVED_IN",
+            "PICKED",
             name="movement_type_enum"
         ),
         nullable=False
