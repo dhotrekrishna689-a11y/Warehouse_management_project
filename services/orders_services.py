@@ -2,6 +2,7 @@ from database.db_instance import db
 from models.order import Order
 from models.orderitem import OrderItem
 from models.inventory import Inventory
+from models.stockmovement import StockMovement
 
 
 '''
@@ -261,3 +262,74 @@ def get_pick_list(order_id):
         "customer_name": order.customer_name,
         "items": pick_list
     }
+
+
+def update_inventory_after_pick(order_id, items):
+
+    order = Order.query.get(order_id)
+
+    if not order:
+        return {
+            "message": "Order not found."
+        }, 404
+
+    if not items:
+        return {
+            "message": "No picked items provided."
+        }, 400
+
+    picked_items = []
+
+    for item in items:
+
+        inventory_id = item.get("inventory_id")
+        pick_quantity = item.get("quantity")
+
+        if not inventory_id or not pick_quantity:
+            return {
+                "message": "inventory_id and quantity are required."
+            }, 400
+
+        inventory = Inventory.query.get(inventory_id)
+
+        if not inventory:
+            return {
+                "message": f"Inventory {inventory_id} not found."
+            }, 404
+
+        # Check available stock
+        if inventory.quantity < pick_quantity:
+            return {
+                "message": "Insufficient stock.",
+                "inventory_id": inventory_id,
+                "available_quantity": inventory.quantity,
+                "requested_quantity": pick_quantity
+            }, 400
+
+        # Update inventory
+        inventory.quantity -= pick_quantity
+
+        # Create PICKED movement
+        movement = StockMovement(
+            inventory_id=inventory.inventory_id,
+            user_id=1,  # temporary until authentication
+            quantity_changed=-pick_quantity,
+            movement_type="PICKED",
+            reason=f"Order picking - Order {order.order_id}"
+        )
+
+        db.session.add(movement)
+
+        picked_items.append({
+            "inventory_id": inventory.inventory_id,
+            "picked_quantity": pick_quantity,
+            "remaining_quantity": inventory.quantity
+        })
+
+    db.session.commit()
+
+    return {
+        "message": "Inventory updated successfully after picking.",
+        "order_id": order.order_id,
+        "picked_items": picked_items
+    }, 200

@@ -140,3 +140,17 @@ def get_pick_list(order_id):
         return jsonify({"message": result}), 404
 
     return jsonify(result), 200
+
+
+def update_inventory_after_pick(order_id):
+
+    data = request.get_json()
+
+    items = data.get("items", [])
+
+    result, status_code = orders_services.update_inventory_after_pick(
+        order_id,
+        items
+    )
+
+    return jsonify(result), status_code

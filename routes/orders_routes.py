@@ -33,3 +33,10 @@ def delete_order(order_id):
 def get_pick_list(order_id):
     return orders_controllers.get_pick_list(order_id)
 
+@orders_bp.route(
+    "/<int:order_id>/update-inventory",
+    methods=["POST"]
+)
+def update_inventory_after_pick(order_id):
+    return orders_controllers.update_inventory_after_pick(order_id)
+
