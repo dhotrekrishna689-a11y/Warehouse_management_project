@@ -56,9 +56,9 @@ class Inventory(db.Model):
     def to_dict(self):
         return {
         "inventory_id": self.inventory_id,
-        "product_id": self.product_id,
-        "batch_id": self.batch_id,
-        "rack_id": self.rack_id,
+        "product_name": self.product.name,
+        "batch_name": self.batch.batch_number,
+        "rack_number": self.rack.rack_code,
         "quantity": self.quantity
         }
 
