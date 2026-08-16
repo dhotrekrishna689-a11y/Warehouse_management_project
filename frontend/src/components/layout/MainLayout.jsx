@@ -1,0 +1,43 @@
+/*import { Outlet } from "react-router-dom";
+import Sidebar from "./Sidebar";
+import Header from "./Header";
+
+function MainLayout() {
+  return (
+    <div>
+      <Sidebar />
+
+      <div>
+        <Header />
+
+        <main>
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default MainLayout;*/
+
+import { Outlet } from "react-router-dom";
+import Sidebar from "./Sidebar";
+import Header from "./Header";
+
+function MainLayout() {
+  return (
+    <div className="app-layout">
+      <Sidebar />
+
+      <div className="main-area">
+        <Header />
+
+        <main className="page-content">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default MainLayout;
