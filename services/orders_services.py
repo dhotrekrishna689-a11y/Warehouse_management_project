@@ -139,9 +139,17 @@ def create_order(order_data):
     # Create Order
     # ------------------------
 
+    if isinstance(order_date, str):
+        try:
+            from datetime import datetime
+            order_date = datetime.strptime(order_date, "%Y-%m-%d").date()
+        except Exception:
+            pass
+
     order = Order(
         customer_name=customer_name,
-        order_date=order_date
+        order_date=order_date,
+        status="PENDING"
     )
 
     db.session.add(order)
@@ -182,8 +190,11 @@ def get_pick_list(order_id):
 
     order = Order.query.get(order_id)
 
-    if not order:
-        return "Order not found."
+    if getattr(order, 'status', 'PENDING') == "DISPATCHED":
+        return {
+            "message": "This order has already been dispatched.",
+            "status": "DISPATCHED"
+        }, 400
 
     pick_list = []
 
@@ -195,31 +206,19 @@ def get_pick_list(order_id):
             product_id=order_item.product_id
         ).all()
 
-
         total_available = sum(
-        inventory.quantity
-        for inventory in inventories
+            inventory.quantity
+            for inventory in inventories
         )
 
-        print("Product:", order_item.product_id)
-        print("Need:", need_quantity)
-        print("Available:", total_available)
-
-        if not inventories:
-            return f"No inventory found for Product ID {order_item.product_id}"
-
-        # Aage validation aur allocation yahin hoga
-        #for order_item in order.order_items:
-        #print(order_item.product_id)
-        #print(order_item.quantity)
-
-        if total_available < need_quantity:
+        if not inventories or total_available < need_quantity:
             return {
-            "message": "Insufficient stock.",
-            "product_id": order_item.product_id,
-            "required": need_quantity,
-            "available": total_available
-        }, 400
+                "message": f"Insufficient warehouse stock for Product ID {order_item.product_id}. Required: {need_quantity}, Available in warehouse: {total_available}",
+                "status": "OUT_OF_STOCK",
+                "product_id": order_item.product_id,
+                "required": need_quantity,
+                "available": total_available
+            }, 400
 
 
 
@@ -248,6 +247,7 @@ def get_pick_list(order_id):
             if pick_quantity > 0:
 
                 pick_list.append({
+                "inventory_id": inventory.inventory_id,
                 "product_id": inventory.product_id,
                 "batch_id": inventory.batch_id,
                 "rack_id": inventory.rack_id,
@@ -326,6 +326,7 @@ def update_inventory_after_pick(order_id, items):
             "remaining_quantity": inventory.quantity
         })
 
+    order.status = "DISPATCHED"
     db.session.commit()
 
     return {
