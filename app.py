@@ -35,6 +35,16 @@ from models.productmovement import ProductMovement
 from routes.product_movements_routes import product_movements_bp
 with app.app_context():
     db.create_all()
+    try:
+        db.session.execute(db.text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'PENDING';"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        try:
+            db.session.execute(db.text("ALTER TABLE orders ADD COLUMN status VARCHAR(50) DEFAULT 'PENDING';"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
 migrate = Migrate(app, db)
 
