@@ -52,13 +52,12 @@ def get_products(search, category_id, page, limit):
 
 
     query = Product.query
-    search = f"%{search}%"
     if search:
-        #query = query.filter_by(name=search)
+        search_pattern = f"%{search}%"
         query = query.filter(
             or_(
-        Product.name.ilike(search),
-        Product.sku.ilike(search)
+                Product.name.ilike(search_pattern),
+                Product.sku.ilike(search_pattern)
             )
         )
 
