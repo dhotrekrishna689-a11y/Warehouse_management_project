@@ -136,6 +136,9 @@ def get_pick_list(order_id):
 
     result = orders_services.get_pick_list(order_id)
 
+    if isinstance(result, tuple):
+        return jsonify(result[0]), result[1]
+
     if isinstance(result, str):
         return jsonify({"message": result}), 404
 
