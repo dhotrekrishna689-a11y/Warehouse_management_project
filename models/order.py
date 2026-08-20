@@ -27,6 +27,12 @@ class Order(db.Model):
         nullable=False
     )
 
+    status = db.Column(
+        db.String(50),
+        nullable=False,
+        default="PENDING"
+    )
+
     order_items = db.relationship(
     "OrderItem",
     back_populates="order"
@@ -34,8 +40,9 @@ class Order(db.Model):
 
     def to_dict(self):
         return {
-        "order_id": self.order_id,
-        "customer_name": self.customer_name,
-        "order_number": self.order_number,
-        "order_date": self.order_date
+            "order_id": self.order_id,
+            "customer_name": self.customer_name,
+            "order_number": self.order_number,
+            "order_date": str(self.order_date) if self.order_date else None,
+            "status": self.status or "PENDING"
         }
