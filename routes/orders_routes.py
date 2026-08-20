@@ -7,8 +7,9 @@ orders_bp = Blueprint(
     __name__,
     url_prefix="/orders"
 )
+orders_bp.strict_slashes = False
 
-
+@orders_bp.route("", methods=["POST"])
 @orders_bp.route("/", methods=["POST"])
 def create_order():
     return orders_controllers.create_order()
