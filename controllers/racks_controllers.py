@@ -7,13 +7,20 @@ def create_rack():
     data = request.get_json()
 
     rack_code = data.get("rack_code")
+    capacity = data.get("capacity")
 
-    rack = racks_services.create_rack(rack_code)
+    rack = racks_services.create_rack(rack_code, capacity)
 
     if rack == "empty_rack_code":
         return jsonify({
             "message": "Rack code is required"
         }), 400
+
+    if rack == "empty_capacity":
+        return {
+        "message": "Rack capacity is required."
+        }, 400
+
 
     if rack == "duplicate_rack":
         return jsonify({

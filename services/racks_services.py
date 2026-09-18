@@ -2,10 +2,13 @@ from database.db_instance import db
 from models.rack import Rack
 from models.inventory import Inventory
 
-def create_rack(rack_code):
+def create_rack(rack_code, capacity):
 
     if not rack_code:
         return "empty_rack_code"
+
+    if capacity is None:
+        return "empty_capacity"
 
     existing_rack = Rack.query.filter_by(
         rack_code=rack_code
@@ -15,7 +18,8 @@ def create_rack(rack_code):
         return "duplicate_rack"
 
     rack = Rack(
-        rack_code=rack_code
+        rack_code=rack_code,
+        capacity = capacity
     )
 
     db.session.add(rack)

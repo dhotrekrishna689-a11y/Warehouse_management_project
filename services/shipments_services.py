@@ -160,6 +160,10 @@ def receive_shipment(shipment_data):
         if not expiry_date:
             return f"Expiry date is required for item {index}."
 
+        existing_batch = Batch.query.filter_by(batch_number=batch_number).first()
+        if existing_batch and existing_batch.product_id != product_id:
+            return f"Batch number '{batch_number}' already belongs to another product. Use a unique batch number."
+
 
 
     # Create Shipment
@@ -190,10 +194,7 @@ def receive_shipment(shipment_data):
 
 
 
-        batch = Batch.query.filter_by(
-            product_id=product_id,
-            batch_number=batch_number
-        ).first()
+        batch = Batch.query.filter_by(batch_number=batch_number).first()
 
         if batch is None:
 
@@ -236,13 +237,13 @@ def receive_shipment(shipment_data):
             db.session.flush()
 
 
-            apply_stock_movement(
-                inventory=inventory,
-                quantity_change=quantity,
-                movement_type="RECEIVED",
-                reason="Shipment Received",
-                user_id=1
-            )
+        apply_stock_movement(
+            inventory=inventory,
+            quantity_change=quantity,
+            movement_type="RECEIVED",
+            reason="Shipment Received",
+            user_id=1
+        )
     
 
     db.session.commit()
