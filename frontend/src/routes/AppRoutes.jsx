@@ -3,8 +3,8 @@ import MainLayout from "../components/layout/MainLayout";
 import DashboardPage from "../pages/Dashboard/DashboardPage";
 import InventoryPage from "../pages/Inventory/InventoryPage";
 import OrderPage from "../pages/Order/OrderPage";
-import InboundPage from "../pages/Inbound/InboundPage";
-import RackPage from "../pages/Rack/RackPage";
+import InboundPage from "../pages/Inbound/Inboundpage";
+import RackPage from "../pages/Rack/Rackpage";
 
 function AppRoutes() {
   return (

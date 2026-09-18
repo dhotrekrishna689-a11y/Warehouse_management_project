@@ -57,7 +57,7 @@ function OrderPage() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1>Customer Orders</h1>
-        <button 
+        <button
           className="btn btn-primary"
           onClick={() => setIsCreateModalOpen(true)}
         >
@@ -71,14 +71,14 @@ function OrderPage() {
         </div>
       )}
 
-      <OrderTable 
-        orders={orders} 
-        onViewPickList={handleViewPickList} 
+      <OrderTable
+        orders={orders}
+        onViewPickList={handleViewPickList}
       />
 
       {/* Create Order Modal */}
       {isCreateModalOpen && (
-        <CreateOrderModal 
+        <CreateOrderModal
           products={products}
           onClose={() => setIsCreateModalOpen(false)}
           onSubmit={handleCreateOrderSubmit}
@@ -87,7 +87,7 @@ function OrderPage() {
 
       {/* Pick List & Dispatch Modal */}
       {activePickList && (
-        <PickListModal 
+        <PickListModal
           pickListData={activePickList}
           onClose={() => setActivePickList(null)}
           onConfirmDispatch={handleConfirmDispatch}
