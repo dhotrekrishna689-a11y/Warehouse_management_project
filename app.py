@@ -33,9 +33,12 @@ from routes.orderitems_routes import orderitems_bp
 from flask_migrate import Migrate
 from models.productmovement import ProductMovement
 from routes.product_movements_routes import product_movements_bp
+from handlers.handlers import register_error_handlers
+
 with app.app_context():
     db.create_all()
 
+register_error_handlers(app)
 migrate = Migrate(app, db)
 
 app.register_blueprint(category_bp)
