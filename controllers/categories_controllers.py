@@ -12,23 +12,25 @@ def create_catgories():
 
     get_service_res = categories_services.create_categories(name)
 
+    
     #HTTP Response return karna
-    if get_service_res is None:
-        return jsonify({
-            "message":"Category already exists"
-        }), 409
-    else:
-        '''return jsonify({
+    #if get_service_res is None:
+       # return jsonify({
+        #    "message":"Category already exists"
+        #}), 409
+    #else:
+    '''return jsonify({
             "message":"Category created successfully",
             "data":get_service_res
-        }), 201'''
-        return jsonify({
+    }), 201'''
+    
+    return jsonify({
         "message": "Category created successfully",
         "data": {
             "category_id": get_service_res.category_id,
             "name": get_service_res.name
             }
-        }), 201
+    }), 201
 
 
 def get_category():
@@ -49,9 +51,10 @@ def get_specific_category(category_id):
     get_specific_cat = categories_services.get_specific_category(category_id)
 
     if get_specific_cat is None:
-        return jsonify({
-                    "message":"Category Not exists"
-                }), 404
+        #return jsonify({
+        #           "message":"Category Not exists"
+        #        }), 404
+        raise 
 
     return jsonify({
         "message":"Category found",
@@ -74,6 +77,7 @@ def update_category(category_id):
     update_cat = categories_services.update_category(name, category_id)
 
     # Category not found
+    '''
     if update_cat is None:
         return jsonify({
             "message": "Category not found"
@@ -84,7 +88,7 @@ def update_category(category_id):
         return jsonify({
             "message": "Category already exists"
         }), 409
-
+    '''
     # Success
     return jsonify({
         "message": "Category updated successfully",
@@ -102,7 +106,7 @@ def delete_category(category_id):
 
     # Service call
     del_cat = categories_services.delete_category(category_id)
-
+    '''
     # Category not found
     if del_cat is None:
         return jsonify({
@@ -114,7 +118,7 @@ def delete_category(category_id):
         return jsonify({
             "message": "Cannot delete category because it is assigned to one or more products."
         }), 409
-
+    '''
     # Success
     return jsonify({
         "message": "Category deleted successfully",

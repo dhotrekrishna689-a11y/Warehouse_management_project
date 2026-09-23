@@ -8,7 +8,12 @@ from exceptions.exceptions import (
     Batch_Duplicate_Found_Error,
     Date_Validation_Error,
     Batch_Not_Found_Error,
-    Resource_Cannot_Delete
+    Resource_Cannot_Delete,
+    Resource_existance,
+    Resource_Not_Exit_Error,
+    Category_Not_Found_Error,
+    Category_Duplicate_Found_Error,
+    Category_Cannot_Delete
 )
 
 def register_error_handlers(app):
@@ -55,4 +60,48 @@ def register_error_handlers(app):
             "error" : {
                 "code" : "Batch cannot be delete"
             }
-        })
+        }), 404
+
+    @app.errorhandler(Resource_existance)
+    def handle_validation_error(error):
+        return jsonify({
+            "message": str(error),
+            "error" : {
+                "code" : "Resource Exists"
+            }
+        }), 409
+
+    @app.errorhandler(Resource_Not_Exit_Error)
+    def handler_validation_error(error):
+        return jsonify({
+            "message" : str(error),
+            "error" :{
+                "code" : "Resource Not exits"
+            }
+       }),404
+
+    @app.errorhandler(Category_Not_Found_Error)
+    def handle_validation_error(error):
+            return jsonify({
+                "message" : str(error),
+                "error" : {
+                    "code" : "Category Not found"
+                }
+            }), 404
+
+    @app.errorhandler(Category_Duplicate_Found_Error)
+    def handle_validation_error(error):
+                return jsonify({
+                    "message" : str(error),
+                    "error" : {
+                        "code" : "Category Exits"
+                    }
+                }), 404
+    @app.errorhandler(Category_Cannot_Delete)
+    def handle_validation_error(error):
+         return jsonify({
+              "message":str(error),
+              "error":{
+                   "code": "Category cannot delete"
+              }
+         }),409
