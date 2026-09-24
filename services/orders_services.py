@@ -3,330 +3,253 @@ from models.order import Order
 from models.orderitem import OrderItem
 from models.inventory import Inventory
 from models.stockmovement import StockMovement
+import datetime
+from exceptions.exceptions import (
+    Order_Not_Found_Error,
+    Order_Cannot_Delete,
+    Validation_Error,
+    Qunatity_validation_Error,
+    Empty_Field_Error,
+    Inventory_Not_Found_Error,
+)
 
-
-'''
-def create_order(
-    order_number,
-    order_date
-):
-
-    if not order_number:
-        return "empty_order_number"
-
-    if not order_date:
-        return "empty_order_date"
-
-    existing_order = Order.query.filter_by(
-        order_number=order_number
-    ).first()
-
-    if existing_order:
-        return "duplicate_order"
-
-    order = Order(
-        order_number=order_number,
-        order_date=order_date
-    )
-
-    db.session.add(order)
-    db.session.commit()
-
-    return order
-'''
 
 def get_orders():
-
-    orders = Order.query.all()
-
-    return orders
+    return Order.query.all()
 
 
 def get_specific_order(order_id):
-
-    order = db.session.get(
-        Order,
-        order_id
-    )
-
+    order = db.session.get(Order, order_id)
     if order is None:
-        return None
-
+        raise Order_Not_Found_Error("Order not found")
     return order
 
-def update_order(
-    order_id,
-    order_date
-):
 
-    order = db.session.get(
-        Order,
-        order_id
-    )
+def update_order(order_id, order_date):
 
+    order = db.session.get(Order, order_id)
     if order is None:
-        return None
+        raise Order_Not_Found_Error("Order not found")
 
     if not order_date:
-        return "empty_order_date"
+        raise Empty_Field_Error("Order date is required")
 
     order.order_date = order_date
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
 
     return order
+
 
 def delete_order(order_id):
 
-    order = db.session.get(
-        Order,
-        order_id
-    )
-
+    order = db.session.get(Order, order_id)
     if order is None:
-        return None
+        raise Order_Not_Found_Error("Order not found")
 
     if len(order.order_items) > 0:
-        return "order_has_items"
+        raise Order_Cannot_Delete(
+            "Cannot delete order because it contains order items"
+        )
 
-    db.session.delete(order)
-    db.session.commit()
+    try:
+        db.session.delete(order)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
 
     return order
-
-
-
 
 
 def create_order(order_data):
 
-    # ------------------------
-    # Order Level Validation
-    # ------------------------
-
     customer_name = order_data.get("customer_name")
-    order_date = order_data.get("order_date")
-    items = order_data.get("items")
+    order_date    = order_data.get("order_date")
+    items         = order_data.get("items")
 
     if not customer_name:
-        return "Customer name is required."
+        raise Empty_Field_Error("Customer name is required")
 
     if not order_date:
-        return "Order date is required."
+        raise Empty_Field_Error("Order date is required")
 
     if not items:
-        return "Order must contain at least one item."
-
-    # ------------------------
-    # Item Level Validation
-    # ------------------------
+        raise Validation_Error("Order must contain at least one item")
 
     for index, item in enumerate(items, start=1):
-
         product_id = item.get("product_id")
-        quantity = item.get("quantity")
+        quantity   = item.get("quantity")
 
         if not product_id:
-            return f"Product is required for item {index}."
+            raise Empty_Field_Error(f"Product is required for item {index}")
 
         if quantity is None:
-            return f"Quantity is required for item {index}."
+            raise Empty_Field_Error(f"Quantity is required for item {index}")
 
         if quantity <= 0:
-            return f"Quantity must be greater than zero for item {index}."
+            raise Qunatity_validation_Error(
+                f"Quantity must be greater than zero for item {index}"
+            )
 
-    # ------------------------
-    # Create Order
-    # ------------------------
+    # Parse date string → date object
+    if isinstance(order_date, str):
+        try:
+            order_date = datetime.date.fromisoformat(order_date)
+        except ValueError:
+            raise Validation_Error("Invalid order date format. Use YYYY-MM-DD")
 
     order = Order(
         customer_name=customer_name,
-        order_date=order_date
+        order_date=order_date,
+        status="PENDING"
     )
 
     db.session.add(order)
-
     db.session.flush()
-
     order.order_number = f"ORD-{order.order_id:06d}"
 
-    # ------------------------
-    # Create Order Items
-    # ------------------------
-
     for item in items:
-
-        product_id = item.get("product_id")
-        quantity = item.get("quantity")
-
         order_item = OrderItem(
             order_id=order.order_id,
-            product_id=product_id,
-            quantity=quantity
+            product_id=item.get("product_id"),
+            quantity=item.get("quantity")
         )
-
         db.session.add(order_item)
 
-    # ------------------------
-    # Commit
-    # ------------------------
-
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
 
     return order
 
 
 def get_pick_list(order_id):
-    print("===== PICK LIST SERVICE CALLED =====")
-    print("ORDER ID:", order_id)
 
     order = Order.query.get(order_id)
-
     if not order:
-        return "Order not found."
+        raise Order_Not_Found_Error("Order not found")
+
+    if order.status == "DISPATCHED":
+        return {
+            "message": "This order has already been dispatched.",
+            "status": "DISPATCHED",
+            "order_id": order.order_id,
+            "order_number": order.order_number,
+        }, 400
 
     pick_list = []
 
     for order_item in order.order_items:
-
         need_quantity = order_item.quantity
 
         inventories = Inventory.query.filter_by(
             product_id=order_item.product_id
         ).all()
 
-
-        total_available = sum(
-        inventory.quantity
-        for inventory in inventories
-        )
-
-        print("Product:", order_item.product_id)
-        print("Need:", need_quantity)
-        print("Available:", total_available)
-
         if not inventories:
-            return f"No inventory found for Product ID {order_item.product_id}"
+            return {
+                "message": f"No inventory found for Product ID {order_item.product_id}",
+                "status": "OUT_OF_STOCK",
+            }, 400
 
-        # Aage validation aur allocation yahin hoga
-        #for order_item in order.order_items:
-        #print(order_item.product_id)
-        #print(order_item.quantity)
+        total_available = sum(inv.quantity for inv in inventories)
 
         if total_available < need_quantity:
             return {
-            "message": "Insufficient stock.",
-            "product_id": order_item.product_id,
-            "required": need_quantity,
-            "available": total_available
-        }, 400
+                "message": "Insufficient stock.",
+                "status": "OUT_OF_STOCK",
+                "product_id": order_item.product_id,
+                "required": need_quantity,
+                "available": total_available,
+            }, 400
 
+        inventories.sort(key=lambda inv: inv.batch.expiry_date)
 
-
-        inventories.sort(
-            key=lambda inventory: inventory.batch.expiry_date
-        )
-        '''
-        for inventory in inventories:
-            print(
-                "Inventory ID:", inventory.inventory_id,
-                "Batch ID:", inventory.batch_id,
-                "Rack ID:", inventory.rack_id,
-                "Quantity:", inventory.quantity
-            )'''
         remaining_need = need_quantity
         for inventory in inventories:
-
             if remaining_need == 0:
                 break
 
-            pick_quantity = min(
-            remaining_need,
-            inventory.quantity
-            )
+            pick_quantity = min(remaining_need, inventory.quantity)
 
             if pick_quantity > 0:
-
                 pick_list.append({
-                "product_id": inventory.product_id,
-                "batch_id": inventory.batch_id,
-                "rack_id": inventory.rack_id,
-                "pick_quantity": pick_quantity
-            })
+                    "inventory_id": inventory.inventory_id,
+                    "product_id":   inventory.product_id,
+                    "batch_id":     inventory.batch_id,
+                    "rack_id":      inventory.rack_id,
+                    "pick_quantity": pick_quantity,
+                })
 
             remaining_need -= pick_quantity
 
     return {
-        "order_id": order.order_id,
-        "order_number": order.order_number,
+        "order_id":      order.order_id,
+        "order_number":  order.order_number,
         "customer_name": order.customer_name,
-        "items": pick_list
+        "items":         pick_list,
     }
 
 
 def update_inventory_after_pick(order_id, items):
 
     order = Order.query.get(order_id)
-
     if not order:
-        return {
-            "message": "Order not found."
-        }, 404
+        raise Order_Not_Found_Error("Order not found")
 
     if not items:
-        return {
-            "message": "No picked items provided."
-        }, 400
+        raise Validation_Error("No picked items provided")
 
     picked_items = []
 
     for item in items:
-
-        inventory_id = item.get("inventory_id")
+        inventory_id  = item.get("inventory_id")
         pick_quantity = item.get("quantity")
 
         if not inventory_id or not pick_quantity:
-            return {
-                "message": "inventory_id and quantity are required."
-            }, 400
+            raise Validation_Error("inventory_id and quantity are required for each item")
 
         inventory = Inventory.query.get(inventory_id)
-
         if not inventory:
-            return {
-                "message": f"Inventory {inventory_id} not found."
-            }, 404
+            raise Inventory_Not_Found_Error(f"Inventory {inventory_id} not found")
 
-        # Check available stock
         if inventory.quantity < pick_quantity:
-            return {
-                "message": "Insufficient stock.",
-                "inventory_id": inventory_id,
-                "available_quantity": inventory.quantity,
-                "requested_quantity": pick_quantity
-            }, 400
+            raise Qunatity_validation_Error(
+                f"Insufficient stock for inventory {inventory_id}. "
+                f"Available: {inventory.quantity}, Requested: {pick_quantity}"
+            )
 
-        # Update inventory
         inventory.quantity -= pick_quantity
 
-        # Create PICKED movement
         movement = StockMovement(
             inventory_id=inventory.inventory_id,
-            user_id=1,  # temporary until authentication
+            user_id=1,
             quantity_changed=-pick_quantity,
             movement_type="PICKED",
             reason=f"Order picking - Order {order.order_id}"
         )
-
         db.session.add(movement)
 
         picked_items.append({
-            "inventory_id": inventory.inventory_id,
-            "picked_quantity": pick_quantity,
+            "inventory_id":     inventory.inventory_id,
+            "picked_quantity":  pick_quantity,
             "remaining_quantity": inventory.quantity
         })
 
-    db.session.commit()
+    order.status = "DISPATCHED"
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
 
     return {
         "message": "Inventory updated successfully after picking.",

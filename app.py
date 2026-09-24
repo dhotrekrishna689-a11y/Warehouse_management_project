@@ -33,6 +33,7 @@ from routes.orderitems_routes import orderitems_bp
 from flask_migrate import Migrate
 from models.productmovement import ProductMovement
 from routes.product_movements_routes import product_movements_bp
+#from routes.dashboard_routes import dashboard_bp
 from handlers.handlers import register_error_handlers
 
 with app.app_context():
@@ -51,6 +52,7 @@ app.register_blueprint(shipmentitems_bp)
 app.register_blueprint(orders_bp)
 app.register_blueprint(orderitems_bp)
 app.register_blueprint(product_movements_bp)
+#app.register_blueprint(dashboard_bp)
 
 @app.route("/")
 def home():

@@ -21,7 +21,7 @@ def create_inventory():
         rack_id,
         quantity
     )
-
+    '''
     # Product Not Found
     if inventory == "product_not_found":
         return jsonify({
@@ -57,7 +57,7 @@ def create_inventory():
         return jsonify({
             "message": "Quantity cannot be negative"
         }), 400
-
+    '''
     # Success
     return jsonify({
         "message": "Inventory created successfully",
@@ -82,12 +82,12 @@ def get_inventories():
 def get_specific_inventory(inventory_id):
 
     inventory = inventories_services.get_specific_inventory(inventory_id)
-
+    '''
     if inventory is None:
         return jsonify({
             "message": "Inventory not found"
         }), 404
-
+    '''
     return jsonify({
         "message": "Inventory found",
         "data": inventory.to_dict()
@@ -106,7 +106,7 @@ def update_inventory(inventory_id):
         rack_id,
         quantity
     )
-
+    '''
     if inventory is None:
         return jsonify({
             "message": "Inventory not found"
@@ -121,7 +121,7 @@ def update_inventory(inventory_id):
         return jsonify({
             "message": "Quantity cannot be negative"
         }), 400
-
+    '''
     return jsonify({
         "message": "Inventory updated successfully",
         "data": inventory.to_dict()
@@ -130,7 +130,7 @@ def update_inventory(inventory_id):
 def delete_inventory(inventory_id):
 
     inventory = inventories_services.delete_inventory(inventory_id)
-
+    '''
     if inventory is None:
         return jsonify({
             "message": "Inventory not found"
@@ -140,7 +140,7 @@ def delete_inventory(inventory_id):
         return jsonify({
             "message": "Cannot delete inventory because stock movements exist."
         }), 409
-
+    '''
     return jsonify({
         "message": "Inventory deleted successfully",
         "data": inventory.to_dict()
@@ -161,7 +161,7 @@ def adjust_stock(inventory_id):
         quantity,
         reason
     )
-
+    '''
     # Error Handling
     if result == "Inventory not found.":
         return jsonify({
@@ -182,7 +182,7 @@ def adjust_stock(inventory_id):
         return jsonify({
             "message": result
         }), 200
-
+    '''
     # Success
     return jsonify({
         "message": "Stock adjusted successfully"

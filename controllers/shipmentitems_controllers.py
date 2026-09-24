@@ -1,7 +1,7 @@
 from flask import request, jsonify
 import services.shipmentitems_services as shipmentitems_services
 
-
+'''
 def create_shipment_item():
 
     data = request.get_json()
@@ -145,6 +145,89 @@ def delete_shipment_item(shipment_item_id):
         return jsonify({
             "message": "Shipment item not found"
         }), 404
+
+    return jsonify({
+        "message": "Shipment item deleted successfully",
+        "data": shipment_item.to_dict()
+    }), 200
+
+'''
+
+def create_shipment_item():
+
+    data = request.get_json()
+
+    shipment_id = data.get("shipment_id")
+    product_id = data.get("product_id")
+    batch_id = data.get("batch_id")
+    quantity = data.get("quantity")
+
+    shipment_item = shipmentitems_services.create_shipment_item(
+        shipment_id,
+        product_id,
+        batch_id,
+        quantity
+    )
+
+    return jsonify({
+        "message": "Shipment item created successfully",
+        "data": shipment_item.to_dict()
+    }), 201
+
+
+def get_shipment_items():
+
+    shipment_items = shipmentitems_services.get_shipment_items()
+
+    converted_items = []
+
+    for item in shipment_items:
+        converted_items.append(item.to_dict())
+
+    return jsonify({
+        "message": "Shipment items fetched successfully",
+        "data": converted_items
+    }), 200
+
+
+def get_specific_shipment_item(shipment_item_id):
+
+    shipment_item = shipmentitems_services.get_specific_shipment_item(
+        shipment_item_id
+    )
+
+    return jsonify({
+        "message": "Shipment item found",
+        "data": shipment_item.to_dict()
+    }), 200
+
+
+def update_shipment_item(shipment_item_id):
+
+    data = request.get_json()
+
+    product_id = data.get("product_id")
+    batch_id = data.get("batch_id")
+    quantity = data.get("quantity")
+
+    shipment_item = shipmentitems_services.update_shipment_item(
+        shipment_item_id,
+        product_id,
+        batch_id,
+        quantity
+    )
+
+    return jsonify({
+        "message": "Shipment item updated successfully",
+        "data": shipment_item.to_dict()
+    }), 200
+
+
+def delete_shipment_item(shipment_item_id):
+
+    shipment_item = shipmentitems_services.delete_shipment_item(
+        shipment_item_id
+    )
 
     return jsonify({
         "message": "Shipment item deleted successfully",
