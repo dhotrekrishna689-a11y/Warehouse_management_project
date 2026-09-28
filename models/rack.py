@@ -40,9 +40,8 @@ class Rack(db.Model):
     )
 
     def to_dict(self):
-        return 
-        {
+        return {
             "rack_id": self.rack_id,
             "rack_code": self.rack_code,
-            "capacity" : self.capacity
+            "capacity": self.capacity
         }

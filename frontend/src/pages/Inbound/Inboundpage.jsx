@@ -15,9 +15,14 @@ function InboundPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    Promise.all([getProducts(), getInboundRacks()])
-      .then(([productData, rackData]) => { setProducts(productData); setRacks(rackData); })
-      .catch((err) => setError(err.message || "Could not load inbound form data."));
+    Promise.allSettled([getProducts(), getInboundRacks()])
+      .then(([productResult, rackResult]) => {
+        if (productResult.status === "fulfilled") setProducts(productResult.value || []);
+        else setError("Could not load products.");
+
+        if (rackResult.status === "fulfilled") setRacks(rackResult.value || []);
+        else setError((prev) => prev + " Could not load racks.");
+      });
   }, []);
 
   const totals = useMemo(() => items.reduce((summary, item) => ({

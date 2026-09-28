@@ -40,20 +40,26 @@ function RackPage() {
     setLoading(true);
     setError("");
     try {
-      const [rackData, utilizationData, inventoryData, productData, batchData] = await Promise.all([
-        getRacks(),
-        getRackUtilization(),
-        getInventories(),
-        getProducts(),
-        getBatches(),
-      ]);
-      setRacks(rackData.filter(Boolean));
-      setUtilization(utilizationData);
-      setInventories(inventoryData);
-      setProducts(productData);
-      setBatches(batchData);
-    } catch (requestError) {
-      setError(requestError.message || "Could not load storage data.");
+      const [rackResult, utilResult, invResult, prodResult, batchResult] =
+        await Promise.allSettled([
+          getRacks(),
+          getRackUtilization(),
+          getInventories(),
+          getProducts(),
+          getBatches(),
+        ]);
+
+      if (rackResult.status === "fulfilled") setRacks((rackResult.value || []).filter(Boolean));
+      else setError("Could not load racks: " + rackResult.reason?.message);
+
+      if (utilResult.status === "fulfilled") setUtilization(utilResult.value || []);
+
+      if (invResult.status === "fulfilled") setInventories(invResult.value || []);
+
+      if (prodResult.status === "fulfilled") setProducts(prodResult.value || []);
+
+      if (batchResult.status === "fulfilled") setBatches(batchResult.value || []);
+
     } finally {
       setLoading(false);
     }
