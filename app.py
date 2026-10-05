@@ -21,6 +21,9 @@ from models.shipmentitem import ShipmentItem
 from models.order import Order
 from models.orderitem import OrderItem
 from models.stockmovement import StockMovement
+from models.purchase_order import Purchase_Order
+from models.purchase_order_item import Purchase_Order_Item
+from models.supplier import Supplier
 from routes.categories_routes import category_bp
 from routes.products_routes import product_bp
 from routes.batches_routes import batches_bp
@@ -30,6 +33,7 @@ from routes.shipments_routes import shipments_bp
 from routes.shipmentitems_routes import shipmentitems_bp
 from routes.orders_routes import orders_bp
 from routes.orderitems_routes import orderitems_bp
+from routes.purchase_order_routes import purchase_order_bp 
 from flask_migrate import Migrate
 from models.productmovement import ProductMovement
 from routes.product_movements_routes import product_movements_bp
@@ -53,7 +57,7 @@ app.register_blueprint(orders_bp)
 app.register_blueprint(orderitems_bp)
 app.register_blueprint(product_movements_bp)
 #app.register_blueprint(dashboard_bp)
-
+app.register_blueprint(purchase_order_bp )
 @app.route("/")
 def home():
     return "Smart Warehouse Bakced Running..."

@@ -26,6 +26,14 @@ class Shipment(db.Model):
         nullable=False
     )
 
+
+    purchase_order_id = db.Column(
+    db.Integer,
+    db.ForeignKey("purchase_orders.purchase_order_id"),
+    unique=True,
+    nullable=False
+    )
+
     user = db.relationship(
     "User",
     back_populates="shipments"
@@ -34,6 +42,11 @@ class Shipment(db.Model):
     shipment_items = db.relationship(
     "ShipmentItem",
     back_populates="shipment"
+    )
+
+    purchase_order = db.relationship(
+    "Purchase_Order",
+    back_populates="shipments"
     )
 
     def to_dict(self):

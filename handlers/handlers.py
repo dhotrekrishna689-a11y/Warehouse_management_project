@@ -36,7 +36,8 @@ from exceptions.exceptions import (
     Order_Item_Duplicate_Found_Error,
     Insufficient_Stock_Error,
     Shipment_Item_Not_Found_Error,
-    Shipment_Item_Duplicate_Found_Error
+    Shipment_Item_Duplicate_Found_Error,
+    Supplier_Not_Found
 )
 
 
@@ -127,6 +128,15 @@ def register_error_handlers(app):
         }
         }), 404
 
+    @app.errorhandler(Supplier_Not_Found)
+    def handle_supplier_not_found(error):
+        return jsonify({
+            "message" : str(error),
+            "error" : {
+                "code" : "SUPPLIER_NOT_FOUND"
+            }
+
+        }), 404
     
 
     # ─── Duplicate / Already Exists (409) ───────────────────────────────────────
