@@ -44,6 +44,9 @@ class Shipment_Item_Not_Found_Error(Resource_Not_Found_Error):
 class Supplier_Not_Found(Resource_Not_Found_Error):
     pass
 
+class Purchase_Order_Not_Found(Resource_Not_Found_Error):
+    pass
+
 # ─── Duplicate / Already Exists ─────────────────────────────────────────────────
 
 class Resource_Duplicate_Found_Error(AppBaseError):

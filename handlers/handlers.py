@@ -37,7 +37,8 @@ from exceptions.exceptions import (
     Insufficient_Stock_Error,
     Shipment_Item_Not_Found_Error,
     Shipment_Item_Duplicate_Found_Error,
-    Supplier_Not_Found
+    Supplier_Not_Found,
+    Purchase_Order_Not_Found
 )
 
 
@@ -136,6 +137,15 @@ def register_error_handlers(app):
                 "code" : "SUPPLIER_NOT_FOUND"
             }
 
+        }), 404
+
+    @app.errorhandler(Purchase_Order_Not_Found)
+    def handle_purchase_order_not_found(error):
+        return jsonify({
+            "message" : str(error),
+            "error" : {
+                "code" : "PURCHASE_ORDER_NOT_FOUND"
+            }
         }), 404
     
 

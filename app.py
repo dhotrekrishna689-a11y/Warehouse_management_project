@@ -37,6 +37,7 @@ from routes.purchase_order_routes import purchase_order_bp
 from flask_migrate import Migrate
 from models.productmovement import ProductMovement
 from routes.product_movements_routes import product_movements_bp
+from routes.supplier_operation_routes import supplier_operation_bp
 #from routes.dashboard_routes import dashboard_bp
 from handlers.handlers import register_error_handlers
 
@@ -58,6 +59,8 @@ app.register_blueprint(orderitems_bp)
 app.register_blueprint(product_movements_bp)
 #app.register_blueprint(dashboard_bp)
 app.register_blueprint(purchase_order_bp )
+app.register_blueprint(supplier_operation_bp)
+
 @app.route("/")
 def home():
     return "Smart Warehouse Bakced Running..."
