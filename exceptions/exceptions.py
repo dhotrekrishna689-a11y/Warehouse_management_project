@@ -95,6 +95,9 @@ class Qunatity_validation_Error(Validation_Error):
 class Empty_Field_Error(Validation_Error):
     pass
 
+class Required_Field(Validation_Error):
+    pass
+
 
 # ─── Cannot Delete ──────────────────────────────────────────────────────────────
 

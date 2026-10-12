@@ -70,6 +70,11 @@ class Product(db.Model):
     back_populates="product"
     )
 
+    supplier_order_preparation_items = db.relationship(
+    "Supplier_Order_Preparation_Item",
+    back_populates="product"
+    )
+
 
     def to_dict(self):
         return {

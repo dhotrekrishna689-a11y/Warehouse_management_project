@@ -54,3 +54,9 @@ class Purchase_Order(db.Model):
         "Supplier",
         back_populates="purchase_orders"
     )
+
+    supplier_order_preparation = db.relationship(
+    "Supplier_Order_Preparation",
+    back_populates="purchase_order",
+    uselist=False
+    )

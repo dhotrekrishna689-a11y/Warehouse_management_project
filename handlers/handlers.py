@@ -38,7 +38,8 @@ from exceptions.exceptions import (
     Shipment_Item_Not_Found_Error,
     Shipment_Item_Duplicate_Found_Error,
     Supplier_Not_Found,
-    Purchase_Order_Not_Found
+    Purchase_Order_Not_Found,
+    Required_Field
 )
 
 
@@ -270,6 +271,14 @@ def register_error_handlers(app):
         }
         }), 400
 
+    @app.errorhandler(Required_Field)
+    def handle_required_field_error(error):
+        return jsonify({
+            "message" : str(error),
+            "error" : {
+                "code" : "REQUIRED FIELD"
+            }
+        }), 400
 
     # ─── Cannot Delete (409) ────────────────────────────────────────────────────
 

@@ -41,3 +41,15 @@ def prepare_purchase_order(purchase_order_id):
         "message": "Purchase Order Prepared Successfully",
         "data": result
     }), 200
+
+
+def confirm_purchase_order(purchase_order_id):
+
+    result = supplier_operation_services.confirm_purchase_order(
+        purchase_order_id
+    )
+
+    return jsonify({
+        "message": "Purchase Order Confirmed Successfully",
+        "data": result
+    }), 200

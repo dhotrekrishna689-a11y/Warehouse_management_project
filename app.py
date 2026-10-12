@@ -24,6 +24,8 @@ from models.stockmovement import StockMovement
 from models.purchase_order import Purchase_Order
 from models.purchase_order_item import Purchase_Order_Item
 from models.supplier import Supplier
+from models.supplier_order_preparation import Supplier_Order_Preparation
+from models.supplier_order_preparation_item import Supplier_Order_Preparation_Item
 from routes.categories_routes import category_bp
 from routes.products_routes import product_bp
 from routes.batches_routes import batches_bp
@@ -41,8 +43,8 @@ from routes.supplier_operation_routes import supplier_operation_bp
 #from routes.dashboard_routes import dashboard_bp
 from handlers.handlers import register_error_handlers
 
-with app.app_context():
-    db.create_all()
+#with app.app_context():
+ #   db.create_all()
 
 register_error_handlers(app)
 migrate = Migrate(app, db)
