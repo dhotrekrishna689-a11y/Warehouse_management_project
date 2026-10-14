@@ -65,6 +65,16 @@ class Product(db.Model):
         back_populates = "product"
     )
 
+    purchase_order_items = db.relationship(
+    "Purchase_Order_Item",
+    back_populates="product"
+    )
+
+    supplier_order_preparation_items = db.relationship(
+    "Supplier_Order_Preparation_Item",
+    back_populates="product"
+    )
+
 
     def to_dict(self):
         return {

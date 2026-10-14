@@ -7,6 +7,13 @@ from flask import Flask, Request, Response
 from models.category import Category
 from models.product import Product
 from database.db_instance import db
+from exceptions.exceptions import (
+   Resource_existance,
+   Resource_Not_Exit_Error,
+   Category_Not_Found_Error,
+   Category_Duplicate_Found_Error,
+   Category_Cannot_Delete
+)
 
 
 def create_categories(name):
@@ -15,7 +22,8 @@ def create_categories(name):
     existing_category = Category.query.filter_by(name=name).first()
 
     if existing_category:
-        return None
+        #return None
+        raise Resource_existance("Category already exists")
 
     # Create Category Object
     category = Category(
@@ -23,11 +31,13 @@ def create_categories(name):
     )
 
     # Save to Database
-    db.session.add(category)
+    try:
+        db.session.add(category)
 
     # Commit
-    db.session.commit()
-
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
     # Return Created Category
     return category
 
@@ -43,7 +53,8 @@ def get_specific_category(category_id):
     category = db.session.get(Category, category_id)
 
     if category is None:
-        return None
+        #return None
+        raise Resource_Not_Exit_Error("Category Not exists")
 
     
     return category
@@ -54,40 +65,45 @@ def update_category(name, category_id):
     category = db.session.get(Category, category_id)
 
     if category is None:
-        return None
+        raise Category_Not_Found_Error("Category Not Found")
 
     # Check duplicate name
     get_name = Category.query.filter_by(name=name).first()
 
-    if get_name is None:
+    if get_name is not None:
 
-        category.name = name
+        if get_name.category_id != category.category_id:
+            raise Category_Duplicate_Found_Error(
+                "Category Already exists"
+            )
+
+    category.name = name
+
+    try:
         db.session.commit()
-        return category
+    except Exception:
+        db.session.rollback()
+        raise
 
-    else:
-
-        if get_name.category_id == category.category_id:
-
-            category.name = name
-            db.session.commit()
-            return category
-
-        else:
-            return "duplicate"
+    return category
 
 def delete_category(category_id):
 
     get_deleted_cat = db.session.get(Category, category_id)
 
     if get_deleted_cat is None:
-        return None
+        #return None
+        raise Category_Not_Found_Error("Category Not Found")
     else:
         get_product = Product.query.filter_by(category_id=category_id).first()
 
         if get_product:
-            return "Cannot delete, beacause product already using this category"
+            #return "Cannot delete, beacause product already using this category"
+            raise Category_Cannot_Delete("Cannot delete category because it is assigned to one or more products.")
         else:
-            db.session.delete(get_deleted_cat)
-            db.session.commit()
-            return get_deleted_cat
+            try:
+                db.session.delete(get_deleted_cat)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+        return get_deleted_cat

@@ -19,7 +19,7 @@ def create_batch():
         manufacturing_date,
         expiry_date
     )
-
+    '''
     if batch == "product_not_found":
         return jsonify({
             "message": "Product not found"
@@ -34,7 +34,7 @@ def create_batch():
         return jsonify({
             "message": "Manufacturing date cannot be after expiry date"
         }), 400
-
+    '''
     return jsonify({
         "message": "Batch created successfully",
         "data": batch.to_dict()
@@ -57,12 +57,12 @@ def get_batches():
 def get_specific_batch(batch_id):
 
     batch = batches_services.get_specific_batch(batch_id)
-
+    '''
     if batch is None:
         return jsonify({
             "message": "Batch not found"
         }), 404
-
+    '''
     return jsonify({
         "message": "Batch found",
         "data": batch.to_dict()
@@ -84,7 +84,7 @@ def update_batch(batch_id):
         manufacturing_date,
         expiry_date
     )
-
+    '''    
     if batch is None:
         return jsonify({
             "message": "Batch not found"
@@ -104,7 +104,7 @@ def update_batch(batch_id):
         return jsonify({
             "message": "Manufacturing date cannot be after expiry date"
         }), 400
-
+    '''
     return jsonify({
         "message": "Batch updated successfully",
         "data": batch.to_dict()
@@ -115,6 +115,7 @@ def delete_batch(batch_id):
 
     batch = batches_services.delete_batch(batch_id)
 
+    '''
     if batch is None:
         return jsonify({
             "message": "Batch not found"
@@ -124,7 +125,7 @@ def delete_batch(batch_id):
         return jsonify({
             "message": "Cannot delete batch because inventory is using it."
         }), 409
-
+    '''
     return jsonify({
         "message": "Batch deleted successfully",
         "data": batch.to_dict()
