@@ -14,5 +14,6 @@ def purchase_order():
 
     return jsonify({
         "message" : "Purchase Order Created Successfully",
+        "data": result,
 
     }), 201

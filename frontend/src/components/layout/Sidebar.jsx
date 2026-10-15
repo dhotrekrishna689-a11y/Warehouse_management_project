@@ -42,11 +42,15 @@ function Sidebar() {
         >Inventory</NavLink>
 
         <NavLink 
-            to="/inbound"
+            to="/warehouse"
             className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
             }
-        >Inbound</NavLink>
+        >Warehouse</NavLink>
+
+        <NavLink to="/supplier-orders" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Supplier Orders</NavLink>
+
+        <NavLink to="/place-supplier-order" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Place Supplier Order</NavLink>
 
         <NavLink 
             to="/order"
@@ -65,6 +69,7 @@ function Sidebar() {
             }
         
         >Racks</NavLink>
+
       </nav>
     </aside>
   );

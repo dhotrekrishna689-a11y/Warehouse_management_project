@@ -1,70 +1,149 @@
-import { useEffect, useMemo, useState } from "react";
-import { getProducts } from "../../services/productsApi";
-import { getInboundRacks, receiveShipment } from "../../services/inboundApi";
+import { useEffect, useRef, useState } from "react";
+import { getRackUtilization } from "../../services/rackApi";
+import { receiveShipment } from "../../services/inboundApi";
 
-const newItem = () => ({ product_id: "", batch_number: "", expected_quantity: "", quantity: "", rack_id: "", manufacturing_date: "", expiry_date: "", verified: false });
+function localDate() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
 
 function InboundPage() {
-  const [step, setStep] = useState(1);
-  const [products, setProducts] = useState([]);
-  const [racks, setRacks] = useState([]);
-  const [receivedDate, setReceivedDate] = useState(new Date().toISOString().slice(0, 10));
-  const [items, setItems] = useState([newItem()]);
+  const videoRef = useRef(null);
+  const scannerControlsRef = useRef(null);
+  const [scanning, setScanning] = useState(false);
+  const [shipment, setShipment] = useState(null);
+  const [supplierQrImage, setSupplierQrImage] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    Promise.allSettled([getProducts(), getInboundRacks()])
-      .then(([productResult, rackResult]) => {
-        if (productResult.status === "fulfilled") setProducts(productResult.value || []);
-        else setError("Could not load products.");
-
-        if (rackResult.status === "fulfilled") setRacks(rackResult.value || []);
-        else setError((prev) => prev + " Could not load racks.");
-      });
+    try {
+      const savedQr = JSON.parse(localStorage.getItem("warehouse-last-supplier-qr") || "null");
+      if (savedQr?.qr_code) {
+        const parsed = parseSupplierQr(JSON.stringify(savedQr));
+        setSupplierQrImage(savedQr.qr_code);
+        setShipment({ ...parsed, items: parsed.items.map((item) => ({ ...item, received_quantity: "" })) });
+      }
+    } catch { setSupplierQrImage(""); }
   }, []);
 
-  const totals = useMemo(() => items.reduce((summary, item) => ({
-    expected: summary.expected + Number(item.expected_quantity || 0),
-    received: summary.received + Number(item.quantity || 0),
-  }), { expected: 0, received: 0 }), [items]);
-
-  const changeItem = (index, field, value) => setItems((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, [field]: value } : item));
-  const removeItem = (index) => setItems((current) => current.length === 1 ? current : current.filter((_, itemIndex) => itemIndex !== index));
-  const advance = () => {
-    setError("");
-    if (step === 1 && items.some((item) => !item.product_id || !item.batch_number || !item.expected_quantity)) return setError("Add product, batch number, and expected quantity for every item.");
-    if (step === 2 && items.some((item) => !item.quantity || !item.verified)) return setError("Enter received quantity and verify every item before continuing.");
-    if (step === 3 && items.some((item) => !item.rack_id || !item.manufacturing_date || !item.expiry_date)) return setError("Assign a rack and dates for every item.");
-    setStep((current) => Math.min(3, current + 1));
+  const stopCamera = () => {
+    scannerControlsRef.current?.stop();
+    scannerControlsRef.current = null;
+    setScanning(false);
   };
-  const submit = async () => {
-    setError("");
-    if (items.some((item) => !item.rack_id || !item.manufacturing_date || !item.expiry_date)) return setError("Complete rack and date assignment for all items.");
-    setSubmitting(true);
+
+  useEffect(() => {
+    if (!scanning || !videoRef.current) return undefined;
+    let active = true;
+    let controls;
+    import("@zxing/browser").then(({ BrowserQRCodeReader }) => {
+      if (!active) return null;
+      const reader = new BrowserQRCodeReader();
+      return reader.decodeFromConstraints({ audio: false, video: { facingMode: { ideal: "environment" } } }, videoRef.current, (result, _decodeError, currentControls) => {
+        if (!active) return;
+        controls = currentControls;
+        scannerControlsRef.current = currentControls;
+        if (!result) return;
+        try {
+          const parsed = parseSupplierQr(result.getText());
+          setShipment({ ...parsed, items: parsed.items.map((item) => ({ ...item, received_quantity: "" })) });
+          currentControls.stop();
+          scannerControlsRef.current = null;
+          setScanning(false);
+        } catch (err) {
+          setError(err.message || "Could not read this supplier QR code.");
+          currentControls.stop();
+          scannerControlsRef.current = null;
+          setScanning(false);
+        }
+      });
+    }).then((createdControls) => {
+      controls = createdControls || controls;
+      if (!active) controls?.stop();
+    }).catch((err) => {
+      if (!active) return;
+      setError(err.name === "NotAllowedError" ? "Allow camera access to scan the supplier QR code." : err.message || "Could not open the camera.");
+      setScanning(false);
+    });
+    return () => {
+      active = false;
+      controls?.stop();
+      scannerControlsRef.current?.stop();
+      scannerControlsRef.current = null;
+    };
+  }, [scanning]);
+
+  const startScanner = async () => {
+    setError(""); setSuccess(""); setShipment(null);
+    setSupplierQrImage("");
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError("Camera access is unavailable. Open the app on localhost or over HTTPS.");
+      return;
+    }
+    setScanning(true);
+  };
+
+  const updateReceivedQuantity = (index, value) => setShipment((current) => ({
+    ...current,
+    items: current.items.map((item, itemIndex) => itemIndex === index ? { ...item, received_quantity: value } : item),
+  }));
+
+  const receiveScannedShipment = async () => {
+    if (!shipment) return;
+    if (shipment.items.some((item) => item.received_quantity === "" || Number(item.received_quantity) < 0)) {
+      setError("Count and enter the received quantity for each product.");
+      return;
+    }
+    const countedItems = shipment.items.filter((item) => Number(item.received_quantity) > 0);
+    if (!countedItems.length) {
+      setError("Enter at least one received unit to continue.");
+      return;
+    }
+    setSubmitting(true); setError(""); setSuccess("");
     try {
-      const payload = await receiveShipment({ received_date: receivedDate, items: items.map(({ expected_quantity, verified, ...item }) => ({ ...item, product_id: Number(item.product_id), rack_id: Number(item.rack_id), quantity: Number(item.quantity) })) });
-      setSuccess(`${payload.message} ${payload.shipment?.shipment_number || ""}`.trim());
-      setItems([newItem()]);
-      setStep(1);
-    } catch (err) { setError(err.message || "Could not receive shipment."); }
+      const racks = await getRackUtilization();
+      const availableRacks = racks.map((rack) => ({ ...rack, remaining: Number(rack.capacity || 0) - Number(rack.current_stock || 0) })).sort((a, b) => b.remaining - a.remaining);
+      if (!availableRacks.length) throw new Error("No warehouse racks are available. Add a rack before receiving this shipment.");
+      const items = countedItems.map((item) => {
+        const quantity = Number(item.received_quantity);
+        const rack = availableRacks.find((candidate) => candidate.remaining >= quantity);
+        if (!rack) throw new Error(`There is not enough rack capacity for product ${item.product_id}.`);
+        rack.remaining -= quantity;
+        return { product_id: Number(item.product_id), batch_number: item.batch_number, quantity, manufacturing_date: item.manufacturing_date, expiry_date: item.expiry_date, rack_id: rack.rack_id };
+      });
+      const result = await receiveShipment({ purchase_order_id: Number(shipment.purchase_order_id), received_date: localDate(), items });
+      setSuccess(`${shipment.shipment_number} received successfully. ${result.shipment?.shipment_number || ""}`.trim());
+      try {
+        const latest = JSON.parse(localStorage.getItem("warehouse-last-supplier-qr") || "null");
+        if (latest?.purchase_order_id === shipment.purchase_order_id) localStorage.removeItem("warehouse-last-supplier-qr");
+      } catch { localStorage.removeItem("warehouse-last-supplier-qr"); }
+      setShipment(null);
+      setSupplierQrImage("");
+    } catch (err) { setError(err.message || "Could not receive the scanned shipment."); }
     finally { setSubmitting(false); }
   };
 
   return <section className="inbound-page">
-    <div className="storage-page__header"><div><p className="eyebrow">Inbound operations</p><h1>Receive Shipment</h1><p className="page-subtitle">Record incoming stock, verify quantities, and place each item in a rack.</p></div><div className="inbound-date"><label>Received date<input type="date" value={receivedDate} onChange={(event) => setReceivedDate(event.target.value)} /></label></div></div>
-    <div className="inbound-steps">{["Receive Shipment", "Verify Quantity", "Assign Rack"].map((label, index) => <button key={label} className={step === index + 1 ? "active" : step > index + 1 ? "complete" : ""} onClick={() => index + 1 < step && setStep(index + 1)}><span>{step > index + 1 ? "✓" : index + 1}</span>{label}</button>)}</div>
+    <div className="storage-page__header"><div><p className="eyebrow">Warehouse receiving</p><h1>Receive Shipment</h1><p className="page-subtitle">Scan the QR code supplied with the delivery. Shipment and batch details will be read automatically.</p></div></div>
     {error && <div className="storage-alert">{error}</div>}{success && <div className="inbound-success">{success}</div>}
-    <div className="inbound-summary"><Metric label="Line items" value={items.length} /><Metric label="Expected units" value={totals.expected} /><Metric label="Received units" value={totals.received} /></div>
-    {step === 1 && <div className="storage-card inbound-card"><div className="inbound-card__heading"><div><h2>Shipment items</h2><p>Add every product included in this delivery.</p></div><button className="secondary-button" onClick={() => setItems((current) => [...current, newItem()])}>+ Add item</button></div><div className="inbound-items">{items.map((item, index) => <article className="inbound-item" key={index}><div className="item-number">{index + 1}</div><div className="inbound-fields"><Select label="Product" value={item.product_id} onChange={(value) => changeItem(index, "product_id", value)} options={products.map((product) => ({ value: product.product_id, label: product.name }))} /><Input label="Batch number" value={item.batch_number} onChange={(value) => changeItem(index, "batch_number", value)} placeholder="e.g. BATCH-2026-001" /><Input label="Expected quantity" type="number" value={item.expected_quantity} onChange={(value) => changeItem(index, "expected_quantity", value)} /></div>{items.length > 1 && <button className="danger-text remove-item" onClick={() => removeItem(index)}>Remove</button>}</article>)}</div><div className="inbound-actions"><button className="primary-button" onClick={advance}>Continue to quantity check</button></div></div>}
-    {step === 2 && <div className="storage-card inbound-card"><div className="inbound-card__heading"><div><h2>Verify received quantity</h2><p>Match physical stock with the delivery note before storage.</p></div></div><div className="verify-list">{items.map((item, index) => <article className="verify-row" key={index}><strong>{products.find((product) => String(product.product_id) === String(item.product_id))?.name || "Product"}</strong><span>Batch {item.batch_number}</span><span>Expected: {item.expected_quantity}</span><label>Received<input type="number" min="1" value={item.quantity} onChange={(event) => changeItem(index, "quantity", event.target.value)} /></label><label className="verify-check"><input type="checkbox" checked={item.verified} onChange={(event) => changeItem(index, "verified", event.target.checked)} /> Verified</label></article>)}</div><div className="inbound-actions"><button className="secondary-button" onClick={() => setStep(1)}>Back</button><button className="primary-button" onClick={advance}>Continue to rack assignment</button></div></div>}
-    {step === 3 && <div className="storage-card inbound-card"><div className="inbound-card__heading"><div><h2>Assign storage rack</h2><p>Choose where each verified item should be stored.</p></div></div><div className="assign-list">{items.map((item, index) => <article className="assign-row" key={index}><strong>{products.find((product) => String(product.product_id) === String(item.product_id))?.name || "Product"}</strong><span>{item.quantity} units · {item.batch_number}</span><Select label="Destination rack" value={item.rack_id} onChange={(value) => changeItem(index, "rack_id", value)} options={racks.map((rack) => ({ value: rack.rack_id, label: `${rack.rack_code} — capacity ${rack.capacity}` }))} /><Input label="Manufacturing date" type="date" value={item.manufacturing_date} onChange={(value) => changeItem(index, "manufacturing_date", value)} /><Input label="Expiry date" type="date" value={item.expiry_date} onChange={(value) => changeItem(index, "expiry_date", value)} /></article>)}</div><div className="inbound-actions"><button className="secondary-button" onClick={() => setStep(2)}>Back</button><button className="primary-button" disabled={submitting} onClick={submit}>{submitting ? "Receiving…" : "Receive shipment"}</button></div></div>}
+    <div className="storage-card scanner-card">
+      {!scanning && !shipment && <div className="scanner-start"><div className="scanner-icon" aria-hidden="true">▦</div><h2>Scan supplier QR</h2><p>Point the camera at the supplier’s QR code.</p><button className="primary-button" onClick={startScanner}>Open QR scanner</button></div>}
+      {scanning && <div className="scanner-live"><div className="scanner-video-wrap"><video ref={videoRef} muted playsInline /><div className="scanner-target" /></div><p>Hold the supplier QR code inside the frame.</p><button className="secondary-button" onClick={stopCamera}>Stop scanner</button></div>}
+      {shipment && <div className="scanned-shipment"><div className="scanned-heading"><div><p className="eyebrow">Supplier QR</p><h2>{shipment.shipment_number}</h2><p className="page-subtitle">Purchase order {shipment.purchase_order_number} · {shipment.items.length} products</p></div>{supplierQrImage && <img className="inbound-qr-image" src={supplierQrImage} alt={`Supplier QR for ${shipment.shipment_number}`} />}</div><div className="scanned-items">{shipment.items.map((item, index) => <div className="scanned-item" key={`${item.product_id}-${item.batch_number}`}><span><strong>Product {item.product_id}</strong><small>Supplier quantity: {item.prepared_quantity} · Batch {item.batch_number}</small></span><label className="inbound-input">Received quantity<input type="number" min="0" step="1" value={item.received_quantity} onChange={(event) => updateReceivedQuantity(index, event.target.value)} placeholder="Count received" /></label></div>)}</div><div className="inbound-actions"><button className="secondary-button" onClick={() => { setShipment(null); setSupplierQrImage(""); }}>Scan another QR</button><button className="primary-button" disabled={submitting} onClick={receiveScannedShipment}>{submitting ? "Receiving…" : "Receive shipment"}</button></div></div>}
+    </div>
   </section>;
 }
 
-function Metric({ label, value }) { return <article className="metric-card"><span>{label}</span><strong>{value}</strong></article>; }
-function Input({ label, value, onChange, type = "text", placeholder = "" }) { return <label className="inbound-input">{label}<input type={type} min={type === "number" ? "1" : undefined} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required /></label>; }
-function Select({ label, value, onChange, options }) { return <label className="inbound-input">{label}<select value={value} onChange={(event) => onChange(event.target.value)} required><option value="">Select {label.toLowerCase()}</option>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>; }
+function parseSupplierQr(rawValue) {
+  let parsed;
+  try { parsed = JSON.parse(rawValue); }
+  catch { throw new Error("This QR code does not contain supplier shipment data."); }
+  if (!parsed.shipment_number || !parsed.purchase_order_id || !Array.isArray(parsed.items) || !parsed.items.length) throw new Error("This QR code does not contain a supplier shipment.");
+  const missing = parsed.items.some((item) => !item.product_id || !item.batch_number || !item.prepared_quantity || !item.manufacturing_date || !item.expiry_date);
+  if (missing) throw new Error("The supplier QR is missing required batch or expiry details.");
+  return parsed;
+}
 
 export default InboundPage;

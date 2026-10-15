@@ -5,6 +5,7 @@ from models.inventory import Inventory
 from models.batch import Batch
 from models.rack import Rack
 from models.product import Product
+from models.purchase_order import Purchase_Order
 from services.inventory_operations import apply_stock_movement
 from exceptions.exceptions import (
     Shipment_Not_Found_Error,
@@ -55,10 +56,18 @@ def receive_shipment(shipment_data):
 
     # ── Shipment-level validation ────────────────────────────────────────────────
     received_date = shipment_data.get("received_date")
+    purchase_order_id = shipment_data.get("purchase_order_id")
     items         = shipment_data.get("items")
 
     if not received_date:
         raise Empty_Field_Error("Received date is required")
+
+    if not purchase_order_id:
+        raise Empty_Field_Error("Purchase order is required")
+
+    purchase_order = db.session.get(Purchase_Order, purchase_order_id)
+    if purchase_order is None or purchase_order.status != "Prepared":
+        raise Validation_Error("A prepared supplier purchase order is required")
 
     if not items:
         raise Validation_Error("Shipment must contain at least one item")
@@ -116,7 +125,11 @@ def receive_shipment(shipment_data):
 
 
     # ── Create Shipment ──────────────────────────────────────────────────────────
-    shipment = Shipment(received_date=received_date, user_id=1)
+    shipment = Shipment(
+        received_date=received_date,
+        user_id=1,
+        purchase_order_id=purchase_order_id
+    )
     db.session.add(shipment)
     db.session.flush()
     shipment.shipment_number = f"SHP-{shipment.shipment_id:06d}"

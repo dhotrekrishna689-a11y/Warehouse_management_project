@@ -21,6 +21,13 @@ def create_inventory():
     }), 201
 
 
+def get_inventories():
+    inventories = inventories_services.get_inventories()
+    return jsonify({
+        "message": "Inventories fetched successfully",
+        "data": [inv.to_dict() for inv in inventories]
+    }), 200
+
 def get_specific_inventory(inventory_id):
     inventory = inventories_services.get_specific_inventory(inventory_id)
 
